@@ -1,0 +1,66 @@
+# GTM Tech Stack Signal Enrichment MCP Server
+
+An MCP server that detects which go-to-market tools a company runs, straight from its public website. It wraps the Mamba Labs GTM Tech Stack Signal Enrichment actor on Apify and returns a Clay-ready flat JSON row to any MCP client.
+
+## What it does
+
+Give it a company domain and it inspects the public-facing scripts and pages to detect the CRM, sequencer, and marketing automation tools in use. You get back per-tool boolean flags (HubSpot, Salesforce, Apollo, Gong, Intercom, Marketo), counts, and a composite tech stack signal, ready to drop into Clay, a CRM, or an AI agent workflow. All of the detection runs on Apify. This package is a thin client that calls the actor and hands back the result.
+
+## Quick start
+
+You need Node.js 18 or newer and an Apify account with an API token.
+
+Add this to your Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "mamba-gtm-tech-stack": {
+      "command": "npx",
+      "args": ["-y", "@mambalabsdev/mcp-gtm-tech-stack-signal-scraper"],
+      "env": {
+        "APIFY_TOKEN": "your-apify-token"
+      }
+    }
+  }
+}
+```
+
+Get your token at https://console.apify.com/account/integrations, paste it in, and restart Claude Desktop. The `detect_gtm_tech_stack` tool will be available.
+
+## Prerequisites
+
+- Node.js 18 or newer
+- An Apify account with an API token
+
+## Example prompts
+
+- "What GTM tools does stripe.com run? Check their tech stack."
+- "Does openai.com use HubSpot or Salesforce? Detect their CRM."
+- "Pull the marketing automation and sequencer signals for figma.com."
+- "Detect the GTM tech stack for datadoghq.com and list every tool found."
+
+## Inputs
+
+- `domain` (required): the bare company domain, no `https://` and no trailing slash. Example: `stripe.com`
+- `crawl_additional_pages` (optional): if true, crawls up to 2 extra pages (pricing, product) for better coverage. Defaults to true when omitted.
+
+## Output
+
+The tool returns the actor's flat JSON row for the scanned company. Fields include the detected CRM, sequencer, and marketing automation tools, a GTM tool count, a composite tech stack signal, and per-tool boolean flags such as `uses_hubspot`, `uses_salesforce`, `uses_apollo`, `uses_gong`, `uses_intercom`, and `uses_marketo`. See the Apify Store page for the full output schema.
+
+## Full actor documentation
+
+This server is a thin client and holds no detection logic. For the complete input and output reference, pricing, and run history, see the Apify Store page:
+
+https://apify.com/mambalabs/gtm-tech-stack-signal-scraper
+
+## Mamba Labs GTM Suite
+
+This is one of six actors in the Mamba Labs GTM Suite, covering hiring signals, tech stack detection, signal aggregation, job board keyword scanning, LinkedIn URL resolution, and ICP scoring. See them all at https://apify.com/mambalabs.
+
+## License
+
+MIT
+
+Built by Mamba Labs. https://apify.com/mambalabs
