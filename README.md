@@ -51,6 +51,32 @@ Get your token at https://console.apify.com/account/integrations, paste it in, a
 
 The tool returns the actor's flat JSON row for the scanned company. Fields include the detected CRM, sequencer, and marketing automation tools, a GTM tool count, a composite tech stack signal, and per-tool boolean flags such as `uses_hubspot`, `uses_salesforce`, `uses_apollo`, `uses_gong`, `uses_intercom`, and `uses_marketo`. See the Apify Store page for the full output schema.
 
+## Example output
+
+```json
+{
+  "company_domain": "hubspot.com",
+  "crm_detected": "hubspot",
+  "seq_tool_detected": null,
+  "uses_hubspot": true,
+  "uses_salesforce": false,
+  "uses_apollo": false,
+  "uses_gong": false,
+  "uses_intercom": true,
+  "uses_marketo": false,
+  "marketing_automation_detected": "hubspot",
+  "gtm_tool_count": 2,
+  "tech_stack_signal": "high"
+}
+```
+
+## Features
+
+- Per-tool boolean flags: HubSpot, Salesforce, Apollo, Gong, Intercom, Marketo
+- CRM and sequencer classification, plus marketing automation detection
+- Composite tech_stack_signal and gtm_tool_count
+- Flat JSON, every field present in every row
+
 ## Full actor documentation
 
 This server is a thin client and holds no detection logic. For the complete input and output reference, pricing, and run history, see the Apify Store page:
