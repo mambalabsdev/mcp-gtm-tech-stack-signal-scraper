@@ -1,5 +1,7 @@
 # GTM Tech Stack Signal Enrichment MCP Server
 
+[![Smithery](https://smithery.ai/badge/mambabuilt/mcp-gtm-tech-stack-signal-scraper)](https://smithery.ai/servers/mambabuilt/mcp-gtm-tech-stack-signal-scraper)
+
 An MCP server that detects which go-to-market tools a company runs, straight from its public website. It wraps the Mamba Labs GTM Tech Stack Signal Enrichment actor on Apify and returns a Clay-ready flat JSON row to any MCP client.
 
 ## What it does
