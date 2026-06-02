@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mamba-gtm-tech-stack": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mambalabsdev/mcp-gtm-tech-stack-signal-scraper"
+      ],
+      "env": {
+        "APIFY_TOKEN": "your-apify-token"
+      }
+    }
+  }
+}
