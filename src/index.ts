@@ -27,10 +27,20 @@ const server = new McpServer({
   version: pkg.version,
 });
 
-server.tool(
+server.registerTool(
   "detect_gtm_tech_stack",
-  "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal.",
   {
+    title: "Detect GTM Tech Stack",
+    description:
+      "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal. Read-only; requires an APIFY_TOKEN and consumes Apify credits per call.",
+    annotations: {
+      title: "Detect GTM Tech Stack",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+    inputSchema: {
     domain: z
       .string()
       .describe(
@@ -42,6 +52,7 @@ server.tool(
       .describe(
         "If true, crawls up to 2 additional pages per domain (pricing, product) to improve detection coverage. Slightly increases run time. Defaults to true when omitted.",
       ),
+  },
   },
   async ({ domain, crawl_additional_pages }) => {
     if (!APIFY_TOKEN) {
