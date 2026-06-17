@@ -20,7 +20,7 @@ const APIFY_TOKEN = process.env.APIFY_TOKEN;
 // The tilde between the org name and the actor name is Apify's required separator
 // for the org/actor path. It is not a slash.
 const ACTOR_ENDPOINT =
-  "https://api.apify.com/v2/acts/mambalabs~gtm-tech-stack-signal-scraper/run-sync-get-dataset-items?timeout=300";
+  "https://api.apify.com/v2/acts/qyd7nNyqFPelQViBx/run-sync-get-dataset-items?timeout=300";
 
 const server = new McpServer({
   name: "mamba-gtm-tech-stack-signal-scraper",
