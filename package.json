@@ -1,6 +1,6 @@
 {
   "name": "@mambalabsdev/mcp-gtm-tech-stack-signal-scraper",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "MCP server for GTM Tech Stack Signal Enrichment. Detects CRM, sequencer, and marketing automation tools from a company's public website via Apify. Clay-ready output.",
   "type": "module",
   "bin": {
