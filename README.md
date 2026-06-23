@@ -4,6 +4,20 @@
 
 An MCP server that detects which go-to-market tools a company runs, straight from its public website. It wraps the Mamba Labs GTM Tech Stack Signal Enrichment actor on Apify and returns a Clay-ready flat JSON row to any MCP client.
 
+## What's Inside
+
+- [What it does](#what-it-does)
+- [Quick start](#quick-start)
+- [Prerequisites](#prerequisites)
+- [Example prompts](#example-prompts)
+- [Inputs](#inputs)
+- [Output](#output)
+- [Example output](#example-output)
+- [Features](#features)
+- [Full actor documentation](#full-actor-documentation)
+- [Mamba Labs GTM Suite](#mamba-labs-gtm-suite)
+- [License](#license)
+
 ## What it does
 
 Give it a company domain and it inspects the public-facing scripts and pages to detect the CRM, sequencer, and marketing automation tools in use. You get back per-tool boolean flags (HubSpot, Salesforce, Apollo, Gong, Intercom, Marketo), counts, and a composite tech stack signal, ready to drop into Clay, a CRM, or an AI agent workflow. All of the detection runs on Apify. This package is a thin client that calls the actor and hands back the result.
