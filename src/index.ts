@@ -69,9 +69,15 @@ server.registerTool(
       .describe(
         "If true, crawls up to 2 additional pages per domain (pricing, product) to improve detection coverage. Slightly increases run time. Defaults to true when omitted.",
       ),
+    skipCache: z
+      .boolean()
+      .optional()
+      .describe(
+        "By default a clean detection is cached for 7 days and reused on repeat lookups, skipping the browser launch. Set true to force a fresh detection and ignore any cached result.",
+      ),
   },
   },
-  async ({ domain, company_domain, url, crawl_additional_pages }) => {
+  async ({ domain, company_domain, url, crawl_additional_pages, skipCache }) => {
     if (!APIFY_TOKEN) {
       return { isError: true, content: [{ type: "text", text: "APIFY_TOKEN is not set. Create a token at https://console.apify.com/account/integrations and set it as the APIFY_TOKEN environment variable." }] };
     }
@@ -95,6 +101,7 @@ server.registerTool(
     if (crawl_additional_pages !== undefined) {
       input.crawl_additional_pages = crawl_additional_pages;
     }
+    if (skipCache !== undefined) input.skipCache = skipCache;
 
     let response: Response;
     try {
