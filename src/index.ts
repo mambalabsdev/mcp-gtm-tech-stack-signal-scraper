@@ -41,10 +41,27 @@ server.registerTool(
       openWorldHint: true,
     },
     inputSchema: {
+    // The actor's own input schema marks NOTHING required and accepts three
+    // ways of naming the company. Marking domain required here made an input
+    // the actor accepts invalid at the tool boundary, which is the defect this
+    // wrapper existed with since it shipped.
     domain: z
       .string()
+      .optional()
       .describe(
-        "Bare company domain without https:// and without a trailing slash. Example: stripe.com",
+        "Bare company domain without https:// and without a trailing slash. Example: stripe.com. Supply this, company_domain or url.",
+      ),
+    company_domain: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated alias for domain, accepted by the actor for older callers. Prefer domain.",
+      ),
+    url: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated alias for domain, accepted by the actor as a full company website URL. Prefer domain.",
       ),
     crawl_additional_pages: z
       .boolean()
@@ -54,12 +71,27 @@ server.registerTool(
       ),
   },
   },
-  async ({ domain, crawl_additional_pages }) => {
+  async ({ domain, company_domain, url, crawl_additional_pages }) => {
     if (!APIFY_TOKEN) {
       return { isError: true, content: [{ type: "text", text: "APIFY_TOKEN is not set. Create a token at https://console.apify.com/account/integrations and set it as the APIFY_TOKEN environment variable." }] };
     }
 
-    const input: Record<string, unknown> = { domain };
+    // The one guard that is NOT a divergence. Measured 2026-08-13: the actor's
+    // built schema says required: [], but with no company named at all the run
+    // throws "Provide input.domain (single) or input.domains (array)" and exits
+    // FAILED. Rejecting here rejects only what the actor itself rejects, and
+    // saves the caller a failed billable run.
+    if (domain === undefined && company_domain === undefined && url === undefined) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: "Provide domain, company_domain or url. The actor cannot run without one of them." }],
+      };
+    }
+
+    const input: Record<string, unknown> = {};
+    if (domain !== undefined) input.domain = domain;
+    if (company_domain !== undefined) input.company_domain = company_domain;
+    if (url !== undefined) input.url = url;
     if (crawl_additional_pages !== undefined) {
       input.crawl_additional_pages = crawl_additional_pages;
     }
