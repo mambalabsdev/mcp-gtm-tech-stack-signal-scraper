@@ -32,7 +32,7 @@ server.registerTool(
   {
     title: "Detect GTM Tech Stack",
     description:
-      "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal. Read-only; requires an APIFY_TOKEN and consumes Apify credits per call.",
+      "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal. Pass technologies to narrow the answer to named tools. Read-only; requires an APIFY_TOKEN and consumes Apify credits per call.",
     annotations: {
       title: "Detect GTM Tech Stack",
       readOnlyHint: true,
@@ -69,6 +69,12 @@ server.registerTool(
       .describe(
         "If true, crawls up to 2 additional pages per domain (pricing, product) to improve detection coverage. Slightly increases run time. Defaults to true when omitted.",
       ),
+    technologies: z
+      .array(z.enum(["hubspot", "salesforce", "marketo", "pardot", "intercom", "drift", "apollo", "outreach", "gong", "zoominfo"]))
+      .optional()
+      .describe(
+        "Report only these tools instead of every detectable one, which is how you answer \"is this company using X\". Only the ten tools with a client side fingerprint are selectable; Clay, Salesloft, Instantly and Lemlist leave no trace on a website and cannot be detected from one. Detection is unchanged either way, so a filtered call costs the same and reuses the same cache. Omit for every tool.",
+      ),
     skipCache: z
       .boolean()
       .optional()
@@ -77,7 +83,7 @@ server.registerTool(
       ),
   },
   },
-  async ({ domain, company_domain, url, crawl_additional_pages, skipCache }) => {
+  async ({ domain, company_domain, url, crawl_additional_pages, technologies, skipCache }) => {
     if (!APIFY_TOKEN) {
       return { isError: true, content: [{ type: "text", text: "APIFY_TOKEN is not set. Create a token at https://console.apify.com/account/integrations and set it as the APIFY_TOKEN environment variable." }] };
     }
@@ -101,6 +107,7 @@ server.registerTool(
     if (crawl_additional_pages !== undefined) {
       input.crawl_additional_pages = crawl_additional_pages;
     }
+    if (technologies !== undefined) input.technologies = technologies;
     if (skipCache !== undefined) input.skipCache = skipCache;
 
     let response: Response;
