@@ -60,6 +60,7 @@ Get your token at https://console.apify.com/account/integrations, paste it in, a
 
 - `domain` (required): the bare company domain, no `https://` and no trailing slash. Example: `stripe.com`
 - `crawl_additional_pages` (optional): if true, crawls up to 2 extra pages (pricing, product) for better coverage. Defaults to true when omitted.
+- `technologies` (optional): report only these tools instead of every detectable one, which is how you answer "is this company using X". Selectable values: `hubspot`, `salesforce`, `marketo`, `pardot`, `intercom`, `drift`, `apollo`, `outreach`, `gong`, `zoominfo`. Omit for every tool.
 
 ## Output
 

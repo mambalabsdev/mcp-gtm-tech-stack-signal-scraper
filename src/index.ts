@@ -32,7 +32,7 @@ server.registerTool(
   {
     title: "Detect GTM Tech Stack",
     description:
-      "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal. Read-only; requires an APIFY_TOKEN and consumes Apify credits per call.",
+      "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal. Pass technologies to narrow the answer to named tools. Read-only; requires an APIFY_TOKEN and consumes Apify credits per call.",
     annotations: {
       title: "Detect GTM Tech Stack",
       readOnlyHint: true,
@@ -41,10 +41,27 @@ server.registerTool(
       openWorldHint: true,
     },
     inputSchema: {
+    // The actor's own input schema marks NOTHING required and accepts three
+    // ways of naming the company. Marking domain required here made an input
+    // the actor accepts invalid at the tool boundary, which is the defect this
+    // wrapper existed with since it shipped.
     domain: z
       .string()
+      .optional()
       .describe(
-        "Bare company domain without https:// and without a trailing slash. Example: stripe.com",
+        "Bare company domain without https:// and without a trailing slash. Example: stripe.com. Supply this, company_domain or url.",
+      ),
+    company_domain: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated alias for domain, accepted by the actor for older callers. Prefer domain.",
+      ),
+    url: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated alias for domain, accepted by the actor as a full company website URL. Prefer domain.",
       ),
     crawl_additional_pages: z
       .boolean()
@@ -52,17 +69,46 @@ server.registerTool(
       .describe(
         "If true, crawls up to 2 additional pages per domain (pricing, product) to improve detection coverage. Slightly increases run time. Defaults to true when omitted.",
       ),
+    technologies: z
+      .array(z.enum(["hubspot", "salesforce", "marketo", "pardot", "intercom", "drift", "apollo", "outreach", "gong", "zoominfo"]))
+      .optional()
+      .describe(
+        "Report only these tools instead of every detectable one, which is how you answer \"is this company using X\". Only the ten tools with a client side fingerprint are selectable; Clay, Salesloft, Instantly and Lemlist leave no trace on a website and cannot be detected from one. Detection is unchanged either way, so a filtered call costs the same and reuses the same cache. Omit for every tool.",
+      ),
+    skipCache: z
+      .boolean()
+      .optional()
+      .describe(
+        "By default a clean detection is cached for 7 days and reused on repeat lookups, skipping the browser launch. Set true to force a fresh detection and ignore any cached result.",
+      ),
   },
   },
-  async ({ domain, crawl_additional_pages }) => {
+  async ({ domain, company_domain, url, crawl_additional_pages, technologies, skipCache }) => {
     if (!APIFY_TOKEN) {
       return { isError: true, content: [{ type: "text", text: "APIFY_TOKEN is not set. Create a token at https://console.apify.com/account/integrations and set it as the APIFY_TOKEN environment variable." }] };
     }
 
-    const input: Record<string, unknown> = { domain };
+    // The one guard that is NOT a divergence. Measured 2026-08-13: the actor's
+    // built schema says required: [], but with no company named at all the run
+    // throws "Provide input.domain (single) or input.domains (array)" and exits
+    // FAILED. Rejecting here rejects only what the actor itself rejects, and
+    // saves the caller a failed billable run.
+    if (domain === undefined && company_domain === undefined && url === undefined) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: "Provide domain, company_domain or url. The actor cannot run without one of them." }],
+      };
+    }
+
+    const input: Record<string, unknown> = {};
+    if (domain !== undefined) input.domain = domain;
+    if (company_domain !== undefined) input.company_domain = company_domain;
+    if (url !== undefined) input.url = url;
     if (crawl_additional_pages !== undefined) {
       input.crawl_additional_pages = crawl_additional_pages;
     }
+    if (technologies !== undefined) input.technologies = technologies;
+    if (skipCache !== undefined) input.skipCache = skipCache;
 
     let response: Response;
     try {
