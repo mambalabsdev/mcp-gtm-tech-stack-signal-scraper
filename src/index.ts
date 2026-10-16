@@ -6,6 +6,16 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+// Optional per call spending cap, passed through to the actor's own max_charge_usd
+// input. The actor enforces it; this wrapper only forwards it when set.
+const MAX_CHARGE_USD = z
+  .number()
+  .min(0)
+  .optional()
+  .describe(
+    "Optional spending cap for this call, in USD, passed to the actor as max_charge_usd. The run stops before any charge that would take it past this amount and keeps every row already charged. Leave empty to rely only on the maximum charge per run set on your Apify account.",
+  );
+
 // Read the package version so the server reports the same version as the package.
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(
@@ -59,7 +69,9 @@ async function runActor(
   actorPath: string,
   actorLabel: string,
   input: Record<string, unknown>,
+  maxChargeUsd?: number,
 ): Promise<ToolResult> {
+  if (maxChargeUsd !== undefined) input = { ...input, max_charge_usd: maxChargeUsd };
   const APIFY_TOKEN = process.env.APIFY_TOKEN;
   if (!APIFY_TOKEN) {
     return { isError: true, content: [{ type: "text", text: "APIFY_TOKEN is not set. Create a token at https://console.apify.com/account/integrations and set it as the APIFY_TOKEN environment variable." }] };
@@ -201,10 +213,10 @@ server.registerTool(
   {
     title: "Detect GTM Tech Stack",
     description:
-      "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal. Pass technologies to narrow the answer to named tools. Read-only; requires an APIFY_TOKEN and consumes Apify credits per call.",
+      "Detect which GTM tools a company uses from its public-facing website. Returns CRM, sequencer, and marketing automation signals as a flat, Clay-ready JSON row, with per-tool boolean flags for HubSpot, Salesforce, Apollo, Gong, Intercom, and Marketo, plus a composite tech stack signal. Pass technologies to narrow the answer to named tools. Reads public data and writes nothing; requires an APIFY_TOKEN and consumes Apify credits per call.",
     annotations: {
       title: "Detect GTM Tech Stack",
-      readOnlyHint: true,
+      readOnlyHint: false,
       destructiveHint: false,
       idempotentHint: true,
       openWorldHint: true,
@@ -256,9 +268,10 @@ server.registerTool(
       .describe(
         "By default a clean detection is cached for 7 days and reused on repeat lookups, skipping the browser launch. Set true to force a fresh detection and ignore any cached result.",
       ),
+      max_charge_usd: MAX_CHARGE_USD,
   },
   },
-  async ({ domain, company_domain, url, domains, crawl_additional_pages, technologies, skipCache }) => {
+  async ({ domain, company_domain, url, domains, crawl_additional_pages, technologies, skipCache, max_charge_usd }) => {
     // The one guard that is NOT a divergence. Measured 2026-08-13: the actor's
     // built schema says required: [], but with no company named at all the run
     // throws "Provide input.domain (single) or input.domains (array)" and exits
@@ -283,7 +296,7 @@ server.registerTool(
     if (technologies !== undefined) input.technologies = technologies;
     if (skipCache !== undefined) input.skipCache = skipCache;
 
-    return runActor("qyd7nNyqFPelQViBx", "Tech Stack Signal Detector", input);
+    return runActor("qyd7nNyqFPelQViBx", "Tech Stack Signal Detector", input, max_charge_usd);
   },
 );
 

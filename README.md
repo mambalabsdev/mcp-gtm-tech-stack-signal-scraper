@@ -14,6 +14,7 @@ An MCP server that detects which go-to-market tools a company runs, straight fro
 - [Output](#output)
 - [Example output](#example-output)
 - [Features](#features)
+- [Pricing](#pricing)
 - [How each call runs](#how-each-call-runs)
 - [Full actor documentation](#full-actor-documentation)
 - [Mamba Labs GTM Suite](#mamba-labs-gtm-suite)
@@ -70,6 +71,7 @@ Every input the tool accepts, generated from the server's own tool list.
 | `crawl_additional_pages` | boolean | no | If true, crawls up to 2 additional pages per domain (pricing, product) to improve detection coverage. Slightly increases run time. Defaults to true when omitted. |
 | `technologies` | array of `hubspot`, `salesforce`, `marketo`, `pardot`, `intercom`, `drift`, `apollo`, `outreach`, `gong`, `zoominfo` | no | Report only these tools instead of every detectable one, which is how you answer "is this company using X". Only the ten tools with a client side fingerprint are selectable; Clay, Salesloft, Instantly and Lemlist leave no trace on a website and cannot be detected from one. Detection is unchanged either way, so a filtered call costs the same and reuses the same cache. Omit for every tool. |
 | `skipCache` | boolean | no | By default a clean detection is cached for 7 days and reused on repeat lookups, skipping the browser launch. Set true to force a fresh detection and ignore any cached result. |
+| `max_charge_usd` | number | no | Optional spending cap for this call, in USD. The actor stops before any charge that would take the run past this amount and keeps every row already charged. |
 
 ## Output
 
@@ -101,6 +103,17 @@ The tool returns the actor's flat JSON row for the scanned company. Fields inclu
 - Composite tech_stack_signal and gtm_tool_count
 - Flat JSON, every field present in every row
 
+## Pricing
+
+You pay per event on Apify, billed to your own Apify account. Prices from the live pricing record, read 2026-10-16:
+
+| Event | Price per event (USD) | Fires when |
+| --- | --- | --- |
+| `apify-default-dataset-item` | $0.015 on the Free plan, down to $0.0128 on higher Apify plans | Single result in the default dataset. |
+| `apify-actor-start` | $0.00005 | Charged when the Actor starts running. Number of events charged depends on Actor memory (one event per GB, minimum one event). |
+
+The [actor's Apify page](https://apify.com/mambalabs/gtm-tech-stack-signal-scraper) carries the current prices. Running this server consumes Apify credits.
+
 ## How each call runs
 
 Each call starts the actor run, polls it until it finishes, then reads the dataset. The run is allowed 1,800 seconds. If the run is still going when this call stops waiting, the call returns the run id and a console link instead of a timeout, so the result is never lost.
@@ -115,7 +128,7 @@ https://apify.com/mambalabs/gtm-tech-stack-signal-scraper
 
 ## Mamba Labs GTM Suite
 
-This server is one of 54 Mamba Labs MCP servers, each backed by a dedicated Apify actor and published under [@mambalabsdev on npm](https://www.npmjs.com/org/mambalabsdev). The ones closest to this server:
+This server is one of 58 Mamba Labs MCP servers, each backed by a dedicated Apify actor and published under [@mambalabsdev on npm](https://www.npmjs.com/org/mambalabsdev). The ones closest to this server:
 
 | Actor | Immutable Actor ID |
 |---|---|
